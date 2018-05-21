@@ -46,10 +46,39 @@ Adafruit_FRAM_I2C::Adafruit_FRAM_I2C(void)
     doing anything else)
 */
 /**************************************************************************/
+
+
+boolean Adafruit_FRAM_I2C::begin(uint8_t addr, TwoWire *theWire) 
+{
+  _wire = theWire;
+  i2c_addr = addr;
+  return init();
+}
+
+boolean Adafruit_FRAM_I2C::begin(TwoWire *theWire) 
+{
+  _wire = theWire;
+  i2c_addr = MB85RC_DEFAULT_ADDRESS;
+  return init();
+}
+
 boolean Adafruit_FRAM_I2C::begin(uint8_t addr) 
 {
+  _wire = &Wire;
   i2c_addr = addr;
-  Wire.begin();
+  return init();
+}
+
+boolean Adafruit_FRAM_I2C::begin() 
+{
+  _wire = &Wire;
+  i2c_addr = MB85RC_DEFAULT_ADDRESS;
+  return init();
+}
+
+boolean Adafruit_FRAM_I2C::init() 
+{
+  _wire -> begin();
   
   /* Make sure we're actually connected */
   uint16_t manufID, prodID;
@@ -87,11 +116,11 @@ boolean Adafruit_FRAM_I2C::begin(uint8_t addr)
 /**************************************************************************/
 void Adafruit_FRAM_I2C::write8 (uint16_t framAddr, uint8_t value)
 {
-  Wire.beginTransmission(i2c_addr);
-  Wire.write(framAddr >> 8);
-  Wire.write(framAddr & 0xFF);
-  Wire.write(value);
-  Wire.endTransmission();
+  _wire -> beginTransmission(i2c_addr);
+  _wire -> write(framAddr >> 8);
+  _wire -> write(framAddr & 0xFF);
+  _wire -> write(value);
+  _wire -> endTransmission();
 }
 
 /**************************************************************************/
@@ -108,14 +137,14 @@ void Adafruit_FRAM_I2C::write8 (uint16_t framAddr, uint8_t value)
 /**************************************************************************/
 uint8_t Adafruit_FRAM_I2C::read8 (uint16_t framAddr)
 {
-  Wire.beginTransmission(i2c_addr);
-  Wire.write(framAddr >> 8);
-  Wire.write(framAddr & 0xFF);
-  Wire.endTransmission();
+  _wire -> beginTransmission(i2c_addr);
+  _wire -> write(framAddr >> 8);
+  _wire -> write(framAddr & 0xFF);
+  _wire -> endTransmission();
 
-  Wire.requestFrom(i2c_addr, (uint8_t)1);
+  _wire -> requestFrom(i2c_addr, (uint8_t)1);
   
-  return Wire.read();
+  return _wire -> read();
 }
 
 /**************************************************************************/
@@ -135,14 +164,14 @@ void Adafruit_FRAM_I2C::getDeviceID(uint16_t *manufacturerID, uint16_t *productI
   uint8_t a[3] = { 0, 0, 0 };
   uint8_t results;
   
-  Wire.beginTransmission(MB85RC_SLAVE_ID >> 1);
-  Wire.write(i2c_addr << 1);
-  results = Wire.endTransmission(false);
+  _wire -> beginTransmission(MB85RC_SLAVE_ID >> 1);
+  _wire -> write(i2c_addr << 1);
+  results = _wire -> endTransmission(false);
 
-  Wire.requestFrom(MB85RC_SLAVE_ID >> 1, 3);
-  a[0] = Wire.read();
-  a[1] = Wire.read();
-  a[2] = Wire.read();
+  _wire -> requestFrom(MB85RC_SLAVE_ID >> 1, 3);
+  a[0] = _wire -> read();
+  a[1] = _wire -> read();
+  a[2] = _wire -> read();
 
   /* Shift values to separate manuf and prod IDs */
   /* See p.10 of http://www.fujitsu.com/downloads/MICRO/fsa/pdf/products/memory/fram/MB85RC256V-DS501-00017-3v0-E.pdf */
